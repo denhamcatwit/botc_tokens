@@ -1,0 +1,62 @@
+name: 'Build My Custom Tokens'
+
+on:
+  # Allows manual execution from the Actions tab
+  workflow_dispatch:
+
+  # Automatically runs when you push changes to key files
+  push:
+    branches:
+      - 'stable'
+    paths:
+      # Key files the workflow depends on
+      - '.github/workflows/generate-tokens.yml'
+
+jobs:
+  build-tokens:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+
+      - name: 'Set up Python 3.10'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # 1. Install ImageMagick (CRITICAL for Wand/image manipulation)
+      - name: 'Install ImageMagick'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      # 3. Install the botc_tokens tool (must run AFTER the patch)
+      - name: 'Install Python Dependencies'
+        run: |
+          pip install .
+
+      # 4. Run 'botc_tokens update' to get core data, using YOUR reminders file
+      - name: 'Run: botc_tokens update'
+        run: |
+          botc_tokens update \
+            --use-built-in
+
+      # 5. Run 'botc_tokens create' to generate tokens, using YOUR component packs
+      - name: 'Run: botc_tokens create'
+        run: |
+          botc_tokens create 
+
+      # 6. Run 'botc_tokens group' to arrange tokens into printable sheets, using YOUR script
+      - name: 'Run: botc_tokens group'
+        run: |
+          botc_tokens group ./my_script.json \
+            --token-dir ./tokens \
+            --output-dir ./printables
+
+      # 7. Upload the final 'printables' folder as an artifact
+      - name: 'Upload Printable Artifacts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: 'printable-tokens'
+          path: ./printables/
