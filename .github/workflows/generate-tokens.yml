@@ -51,7 +51,7 @@ jobs:
       - name: 'Run: botc_tokens group'
         run: |
           botc_tokens group ./my_script.json \
-            --padding 50
+            --padding 50 \
             --token-dir ./tokens \
             --output-dir ./printables
 
